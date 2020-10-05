@@ -13,8 +13,18 @@ namespace AppGraph
         {
             string str, source, dest;
             int N;
-            
-            StreamReader input = new StreamReader("input.txt");
+
+            StreamReader input;
+
+            try
+            {
+                input = new StreamReader("input.txt");
+            }
+            catch
+            {
+                Console.WriteLine("Ошибка! Файл не найден.");
+                return;
+            }
 
             str = input.ReadLine();
             source = str.Split(' ')[0];
@@ -33,21 +43,71 @@ namespace AppGraph
                 }
             }
 
-            Dictionary<int, string> values = new Dictionary<int, string>(N);
-            int k = 0;
+            Dictionary<string, List<string>> values = new Dictionary<string, List<string>>();
             
             for (int i = 0; i < N; i++)
             {
-                for (int j = 0; j < 2; j++)
+                if (!values.ContainsKey(currency[i, 0]))
                 {
-                    if (values.ContainsValue(currency[i, j]) == false)
-                    {
-                        k++;
-                        values.Add(k, currency[i, j]);
-                    }
+                    values[currency[i, 0]] = new List<string>();
+                }
+                values[currency[i, 0]].Add(currency[i, 1]);
+            }
 
+            Queue<string> queue = new Queue<string>();
+            queue.Enqueue(source);
+            HashSet<string> visited = new HashSet<string>();
+            Dictionary<string, string> route = new Dictionary<string, string>();
+
+            bool found = false;
+            while (queue.Count != 0)
+            {
+                var i = queue.Dequeue();
+                visited.Add(i);
+
+                if (i == dest)
+                {
+                    found = true;
+                    break;
+                }
+                else
+                {
+                    if (values.ContainsKey(i))
+                    {
+                        foreach (var child in values[i])
+                        {
+                            if (!visited.Contains(child))
+                            {
+                                route[child] = i;
+                                queue.Enqueue(child);
+                            }
+                        }
+                    }
+                }
+                    
+            }
+
+            List<string> result = new List<string>();
+            if (found)
+            {
+                string key = dest;
+                while (route.ContainsKey(key))
+                {
+                    result.Add(key);
+                    key = route[key];
                 }
             }
+
+            result.Add(source);
+
+            StreamWriter output = new StreamWriter("output.txt");
+
+            for (int i = N-1; i >= 0; i--)
+            {
+                output.Write(result[i] + " ");
+            }
+
+            Console.WriteLine("Файл output.txt сформирован.");
 
             Console.ReadKey();
         }
